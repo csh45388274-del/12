@@ -1,0 +1,539 @@
+<title>에너지음료 뒷면 먼저</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<style>
+/* Layout: a 1080x1920 shorts stage scaled to fit, with a slim control bar under it. Bottom 20% of the stage stays free for Vrew subtitles. */
+:root{
+  --bg:#eef1f6; --panel:#ffffff; --fg:#1d2433; --muted:#5b6478; --line:#d5dbe6; --accent:#1f8f7d; --accent-fg:#ffffff;
+  --display:'Black Han Sans','Noto Sans KR','Noto Sans CJK KR',sans-serif;
+  --body:'Noto Sans KR','Noto Sans CJK KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141824; --panel:#1e2433; --fg:#e9edf5; --muted:#9aa4b8; --line:#323a4d; --accent:#43c2ab; --accent-fg:#0e1a18; color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#141824; --panel:#1e2433; --fg:#e9edf5; --muted:#9aa4b8; --line:#323a4d; --accent:#43c2ab; --accent-fg:#0e1a18; color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px;box-sizing:border-box}
+.app{display:flex;flex-direction:column;align-items:center;gap:12px;height:100%;min-height:0}
+#frame{position:relative;flex:1 1 auto;width:100%;min-height:0;display:flex;justify-content:center;align-items:flex-start}
+#viewport{position:relative;overflow:hidden;border-radius:14px;box-shadow:0 6px 24px rgba(0,0,0,.18);background:#000}
+#stage{position:absolute;left:0;top:0;width:1080px;height:1920px;transform-origin:0 0;overflow:hidden;font-family:var(--body);color:#1d2433;word-break:keep-all}
+.controls{width:100%;max-width:560px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px;box-sizing:border-box;display:flex;flex-direction:column;gap:8px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+button{font:inherit;font-size:14px;font-weight:700;border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:10px;padding:8px 12px;cursor:pointer}
+button.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+#scrub{flex:1 1 160px;min-width:0;accent-color:var(--accent)}
+.time{font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted);min-width:84px;text-align:right}
+.scene-name{font-size:13px;color:var(--muted)}
+details{font-size:13px;color:var(--muted)}
+summary{cursor:pointer;font-weight:700;color:var(--fg)}
+.durs{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px;margin-top:8px}
+.durs label{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:12px;color:var(--fg)}
+.durs input{width:56px;font:inherit;font-size:13px;padding:3px 4px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg);font-variant-numeric:tabular-nums}
+.hint{font-size:12px;color:var(--muted);line-height:1.5;margin:0}
+/* record mode */
+html.rec body{background:#000;padding:0}
+html.rec .controls{display:none}
+html.rec #viewport{border-radius:0;box-shadow:none}
+html.rec #frame{align-items:center}
+#countdown{position:fixed;inset:0;display:none;align-items:center;justify-content:center;color:#fff;font:700 18px var(--body);background:#000;z-index:5;text-align:center;line-height:1.6}
+/* export mode (used to render the mp4) */
+html.export body{padding:0;background:#000}
+html.export .controls{display:none}
+html.export #viewport{border-radius:0;box-shadow:none}
+
+/* ---------- stage content ---------- */
+.scene{position:absolute;inset:0;visibility:hidden;opacity:0}
+.scene svg.art{position:absolute;inset:0;width:1080px;height:1920px}
+.abs{position:absolute}
+.disp{font-family:var(--display);font-weight:400;letter-spacing:-1px;line-height:1.12}
+.ctr{left:0;right:0;text-align:center}
+.safe-guide{position:absolute;left:0;right:0;bottom:0;height:384px;border-top:6px dashed rgba(255,80,80,.9);background:rgba(255,80,80,.12);display:none;z-index:50;color:#ff5050;font:700 40px var(--body);text-align:center;padding-top:40px;box-sizing:border-box}
+#stage.guide .safe-guide{display:block}
+html.rec #stage .safe-guide,html.export #stage .safe-guide{display:none!important}
+.bubble{background:#fff;border-radius:44px;padding:40px 54px;font-weight:900;font-size:66px;line-height:1.3;color:#1d2433;box-shadow:0 10px 0 rgba(0,0,0,.18)}
+.bubble:after{content:"";position:absolute;left:50%;bottom:-46px;margin-left:-30px;border:30px solid transparent;border-top:24px solid #fff;border-bottom:0;border-top-width:50px}
+.chip{display:inline-flex;align-items:center;justify-content:center;width:96px;height:96px;border-radius:50%;font:900 56px var(--body);background:#fff;color:#9aa4b8;border:6px solid #cfd8e3}
+.chip.on{background:#ff6b5b;color:#fff;border-color:#ff6b5b}
+.chip.done{background:#2fb3a0;color:#fff;border-color:#2fb3a0}
+.label-card{left:80px;top:300px;width:920px;background:#fff;border:8px solid #1d2433;border-radius:30px;padding:46px 50px;box-sizing:border-box;box-shadow:0 18px 0 rgba(29,36,51,.15)}
+.lc-meta{font-size:42px;color:#5b6478;line-height:1.55;font-weight:500}
+.lc-meta b{color:#1d2433;font-weight:700;margin-right:18px}
+.lc-hr{height:4px;background:#1d2433;margin:28px 0;opacity:.85}
+.lc-block{position:relative;margin:34px 0;padding:22px 24px;border-radius:20px;transition:none}
+.lc-block .hl{position:absolute;inset:-6px;border:10px solid #ff6b5b;border-radius:26px;opacity:0}
+.lc-block .num{position:absolute;left:-74px;top:50%;width:84px;height:84px;margin-top:-42px;border-radius:50%;background:#ff6b5b;color:#fff;font:900 50px/84px var(--body);text-align:center;opacity:0}
+.lc-high{display:inline-block;border:6px solid #d93a2b;color:#d93a2b;font-weight:900;font-size:88px;padding:8px 30px;border-radius:12px}
+.lc-caf{font-weight:900;font-size:82px;color:#1d2433}
+.lc-caf span{color:#d93a2b}
+.lc-warn{font-weight:700;font-size:58px;line-height:1.42;color:#1d2433}
+.lc-small{font-size:32px;color:#8a93a6;line-height:1.5}
+.tag{position:absolute;right:30px;top:-34px;background:#1d2433;color:#fff;font:700 34px var(--body);padding:10px 24px;border-radius:999px}
+.tile{left:110px;width:860px;border-radius:34px;box-sizing:border-box;padding:28px 40px;display:flex;align-items:center;justify-content:space-between;background:#fff;border:6px solid #c9d4ef}
+.tile .k{font-size:46px;font-weight:700;color:#5b6478}
+.tile .v{font-family:var(--display);font-size:120px;color:#1d2433;font-variant-numeric:tabular-nums}
+.tile.res{background:#ffd84d;border-color:#1d2433}
+.op{left:0;right:0;text-align:center;font:900 100px var(--body);color:#5b6478}
+.card{left:100px;width:880px;height:290px;background:#fff;border-radius:36px;box-shadow:0 12px 0 rgba(0,0,0,.08);display:flex;align-items:center;gap:30px;box-sizing:border-box;padding:0 44px}
+.card svg{flex:0 0 220px;width:220px;height:220px}
+.card .t{font-family:var(--display);font-size:78px;white-space:nowrap;color:#1d2433}
+.item-label{font-family:var(--display);font-size:130px;color:#1d2433}
+</style>
+
+<div class="app">
+  <div id="frame"><div id="viewport"><div id="stage">
+
+    <!-- 1 밤의 책상 -->
+    <section class="scene" id="s1">
+      <svg class="art" viewBox="0 0 1080 1920" id="s1art"></svg>
+      <div class="abs ctr disp" id="s1cap" style="top:150px">
+        <div style="font-size:76px;color:#fff">시험 전날 에너지음료 두 캔</div>
+        <div style="font-size:150px;color:#ffd84d">괜찮을까?</div>
+      </div>
+    </section>
+
+    <!-- 2 캔 두 개 -->
+    <section class="scene" id="s2">
+      <svg class="art" viewBox="0 0 1080 1920" id="s2art"></svg>
+      <div class="abs bubble" id="s2bub" style="left:130px;top:250px;width:820px;text-align:center;box-sizing:border-box">한 캔으로 안 되면,<br>두 캔 마시지 뭐!</div>
+    </section>
+
+    <!-- 3 잠깐 -->
+    <section class="scene" id="s3" style="background:#ffd84d">
+      <svg class="art" viewBox="0 0 1080 1920" id="s3art"></svg>
+      <div class="abs ctr disp" id="s3stop" style="top:150px;font-size:260px;color:#1d2433">잠깐!</div>
+      <div class="abs ctr" id="s3cap" style="top:1330px;font:900 72px var(--body);color:#1d2433">캔 <span style="background:#1d2433;color:#ffd84d;padding:0 18px;border-radius:12px">뒷면</span>부터 볼까요?</div>
+    </section>
+
+    <!-- 4 라벨 -->
+    <section class="scene" id="s4" style="background:#dff3ec">
+      <div class="abs ctr" style="top:120px;display:flex;justify-content:center;align-items:center;gap:26px">
+        <div class="disp" style="font-size:84px;color:#1d2433;margin-right:14px">뒷면 확인</div>
+        <span class="chip" id="c1">1</span><span class="chip" id="c2">2</span><span class="chip" id="c3">3</span>
+      </div>
+      <div class="abs label-card" id="s4card">
+        <div class="tag">예시 라벨</div>
+        <div class="lc-meta"><b>제품명</b>에너지 음료 (가상 제품)</div>
+        <div class="lc-meta"><b>식품유형</b>혼합음료 · <b style="margin-left:6px">내용량</b>250mL</div>
+        <div class="lc-hr"></div>
+        <div class="lc-block" id="b1"><div class="hl"></div><div class="num">1</div><span class="lc-high">고카페인 함유</span></div>
+        <div class="lc-block" id="b2"><div class="hl"></div><div class="num">2</div><div class="lc-caf">총 카페인 함량 <span>100mg</span></div></div>
+        <div class="lc-block" id="b3"><div class="hl"></div><div class="num">3</div><div class="lc-warn">어린이, 임산부, 카페인 민감자는 섭취에 주의하여 주시기 바랍니다.</div></div>
+        <div class="lc-hr"></div>
+        <div class="lc-small">원재료명: 정제수, 설탕, 구연산, 타우린, 카페인, 비타민C, 합성향료</div>
+      </div>
+    </section>
+
+    <!-- 5 계산 -->
+    <section class="scene" id="s5" style="background:#e8eefc">
+      <div class="abs ctr disp" style="top:120px;font-size:96px;color:#1d2433">청소년 하루 카페인<br><span style="color:#3a5bd9">최대 권고량</span></div>
+      <div class="abs tile" id="t1" style="top:420px;height:230px"><span class="k">몸무게</span><span class="v">50kg</span></div>
+      <div class="abs op" id="o1" style="top:655px">×</div>
+      <div class="abs tile" id="t2" style="top:790px;height:230px"><span class="k">체중 1kg당</span><span class="v">2.5mg</span></div>
+      <div class="abs op" id="o2" style="top:1025px">=</div>
+      <div class="abs tile res" id="t3" style="top:1160px;height:250px"><span class="k" style="color:#1d2433">하루 최대</span><span class="v" id="t3v">125mg</span></div>
+      <div class="abs ctr" id="s5foot" style="top:1440px;font:500 36px var(--body);color:#5b6478">어린이·청소년: 체중 1kg당 2.5mg 이하 (식품의약품안전처)</div>
+    </section>
+
+    <!-- 6 그래프 -->
+    <section class="scene" id="s6" style="background:#efeafc">
+      <div class="abs ctr disp" style="top:120px;font-size:92px;color:#1d2433">몸무게 50kg이라면?</div>
+      <svg class="art" viewBox="0 0 1080 1920" id="s6art"></svg>
+    </section>
+
+    <!-- 7 다른 카페인 -->
+    <section class="scene" id="s7" style="background:#e3f1fb">
+      <div class="abs ctr disp" style="top:140px;font-size:96px;color:#1d2433">여기에도<br><span style="color:#d0582f">카페인</span>이 있어요</div>
+      <svg class="art" viewBox="0 0 1080 1920" id="s7art"></svg>
+    </section>
+
+    <!-- 8 두근두근 -->
+    <section class="scene" id="s8">
+      <svg class="art" viewBox="0 0 1080 1920" id="s8art"></svg>
+      <div class="abs ctr disp" style="top:140px;font-size:104px;color:#fff">두근두근,<br><span style="color:#ff8a7a">잠이 안 와요</span></div>
+    </section>
+
+    <!-- 9 배터리 -->
+    <section class="scene" id="s9" style="background:#e6f5ee">
+      <div class="abs ctr" id="s9a" style="top:150px;font:900 80px var(--body);color:#1d2433">피로가 사라진 게 아니라,</div>
+      <svg class="art" viewBox="0 0 1080 1920" id="s9art"></svg>
+      <div class="abs ctr disp" id="s9b" style="top:1320px;font-size:130px;color:#e0483a">잠깐 못 느낄 뿐</div>
+    </section>
+
+    <!-- 10 진짜 에너지 -->
+    <section class="scene" id="s10" style="background:#fdeee3">
+      <div class="abs ctr disp" style="top:120px;font-size:96px;color:#1d2433">졸릴 땐 이렇게</div>
+      <div class="abs card" id="k1" style="top:330px"></div>
+      <div class="abs card" id="k2" style="top:660px"></div>
+      <div class="abs card" id="k3" style="top:990px"></div>
+      <div class="abs ctr disp" id="s10end" style="top:1340px;font-size:96px;color:#1d2433">진짜 에너지는 <span style="color:#e0483a">충분한 잠!</span></div>
+    </section>
+
+    <!-- 11 핵심 -->
+    <section class="scene" id="s11" style="background:#ffd84d">
+      <svg class="art" viewBox="0 0 1080 1920" id="s11art"></svg>
+      <div class="abs ctr disp" id="s11a" style="top:190px;font-size:150px;color:#1d2433">마시기 전에,</div>
+      <div class="abs ctr disp" id="s11b" style="top:380px;font-size:220px;color:#e0483a">뒷면 먼저!</div>
+    </section>
+
+    <!-- 12 질문 -->
+    <section class="scene" id="s12" style="background:#283060">
+      <svg class="art" viewBox="0 0 1080 1920" id="s12art"></svg>
+      <div class="abs ctr" id="s12q" style="top:640px;font:900 104px/1.35 var(--body);color:#fff">오늘 나는<br>카페인을 <span style="color:#ffd84d">얼마나</span><br>먹었을까요?</div>
+      <div class="abs ctr" style="top:1460px;font:500 30px var(--body);color:rgba(255,255,255,.62)">그림·애니메이션: AI(Claude) 제작 · 라벨과 수치는 교육용 예시</div>
+    </section>
+
+    <div class="safe-guide">자막 자리 (Vrew 자막이 들어갈 곳)</div>
+  </div></div></div>
+
+  <div class="controls" id="controls">
+    <div class="row">
+      <button class="primary" id="play">▶ 재생</button>
+      <button id="restart">처음부터</button>
+      <button id="rec">녹화 모드</button>
+      <button id="guide" aria-pressed="false">자막 자리 보기</button>
+    </div>
+    <div class="row">
+      <input type="range" id="scrub" min="0" max="80" step="0.01" value="0" aria-label="재생 위치">
+      <span class="time" id="time">0:00 / 1:20</span>
+    </div>
+    <div class="scene-name" id="sname">1. 밤의 책상</div>
+    <details>
+      <summary>장면 길이 조절 (Vrew 음성에 맞추기)</summary>
+      <div class="durs" id="durs"></div>
+      <p class="hint" style="margin-top:8px">Vrew에서 음성을 먼저 만든 뒤 문장별 길이를 보고 여기 숫자를 바꾸세요. 이 브라우저에만 저장됩니다. 키보드 ←/→ 로 장면 이동, 스페이스로 재생/정지.</p>
+      <button id="resetDur" style="margin-top:6px">기본 길이로 되돌리기</button>
+    </details>
+    <p class="hint">녹화 모드: 화면이 검게 바뀌고 3초 뒤 처음부터 재생됩니다. 그동안 화면 녹화를 켜세요 (윈도우 Win+Alt+R, 맥 Cmd+Shift+5). Esc로 나가기.</p>
+  </div>
+</div>
+<div id="countdown"></div>
+
+<script>
+// ===== 장면 길이(초): 숫자만 바꾸면 됩니다 =====
+const DEFAULT_DUR = [6, 4, 4, 15, 10, 6, 5, 6, 6, 6, 4, 8];
+const NAMES = ['밤의 책상','캔 두 개','잠깐!','라벨 확인','나의 기준 계산','막대그래프','다른 카페인','두근두근','가짜 에너지','진짜 에너지','핵심 메시지','시청 후 질문'];
+const FADE = 0.35;
+
+let DUR = DEFAULT_DUR.slice();
+try{ const s = JSON.parse(localStorage.getItem('energyDur')||'null'); if(Array.isArray(s)&&s.length===DUR.length&&s.every(n=>n>0)) DUR=s; }catch(e){}
+const EXPORT = location.hash === '#export';
+if(EXPORT){ DUR = DEFAULT_DUR.slice(); document.documentElement.classList.add('export'); }
+
+let STARTS=[], TOTAL=0;
+function recompute(){ STARTS=[]; let a=0; DUR.forEach(d=>{STARTS.push(a); a+=d;}); TOTAL=a; }
+recompute();
+
+// ---------- helpers ----------
+const $ = id => document.getElementById(id);
+const clamp = (x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const P = (lt,a,d)=>clamp((lt-a)/d);
+const eo = x=>1-Math.pow(1-x,3);
+const eb = x=>{const c1=1.70158,c3=c1+1;return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2);};
+const ebounce = x=>{const n=7.5625,d=2.75; if(x<1/d)return n*x*x; if(x<2/d)return n*(x-=1.5/d)*x+.75; if(x<2.5/d)return n*(x-=2.25/d)*x+.9375; return n*(x-=2.625/d)*x+.984375;};
+function css(el,o,tr){ if(!el)return; if(o!==undefined)el.style.opacity=o; if(tr!==undefined)el.style.transform=tr; }
+function att(el,tr,o){ if(!el)return; if(tr!==undefined)el.setAttribute('transform',tr); if(o!==undefined)el.setAttribute('opacity',o); }
+// pop-in: opacity + rise + slight overshoot
+function pop(el,lt,a,d=.5,dy=40){ const p=P(lt,a,d); css(el,eo(p),`translateY(${(1-eo(p))*dy}px) scale(${.85+.15*eb(p)})`); }
+
+// ---------- shared drawings ----------
+const INK='#1d2433';
+function nightRoom(){
+  let stars=''; [[140,410],[380,420],[200,640],[360,600],[120,520]].forEach(([x,y],i)=>stars+=`<circle cx="${x}" cy="${y}" r="${i%2?5:7}" fill="#fff6c8"/>`);
+  let ticks=''; for(let i=0;i<12;i++){const a=i*30*Math.PI/180; ticks+=`<line x1="${Math.sin(a)*70}" y1="${-Math.cos(a)*70}" x2="${Math.sin(a)*82}" y2="${-Math.cos(a)*82}" stroke="${INK}" stroke-width="${i%3?5:9}" stroke-linecap="round"/>`;}
+  return `<defs><linearGradient id="nb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1f2550"/><stop offset="1" stop-color="#3a3f78"/></linearGradient>
+  <radialGradient id="glow"><stop offset="0" stop-color="#ffe9a8" stop-opacity=".55"/><stop offset="1" stop-color="#ffe9a8" stop-opacity="0"/></radialGradient></defs>
+  <rect width="1080" height="1920" fill="url(#nb)"/>
+  <rect x="80" y="360" width="340" height="400" rx="16" fill="#151a3a" stroke="#d9d4ff" stroke-width="14"/>
+  <line x1="250" y1="360" x2="250" y2="760" stroke="#d9d4ff" stroke-width="10"/><line x1="80" y1="560" x2="420" y2="560" stroke="#d9d4ff" stroke-width="10"/>
+  ${stars}<circle cx="340" cy="450" r="46" fill="#ffe58a"/><circle cx="362" cy="436" r="40" fill="#151a3a"/>
+  <g transform="translate(830,500)"><circle r="96" fill="#fff" stroke="#c9c4ff" stroke-width="12"/>${ticks}
+   <line x1="0" y1="0" x2="-38" y2="-22" stroke="${INK}" stroke-width="12" stroke-linecap="round"/><line x1="0" y1="0" x2="0" y2="-64" stroke="${INK}" stroke-width="8" stroke-linecap="round"/><circle r="9" fill="${INK}"/></g>
+  <ellipse cx="540" cy="1120" rx="520" ry="260" fill="url(#glow)"/>`;
+}
+function minji(id,eyes,mouth){
+  const E = eyes==='sleepy'
+    ? `<path d="M458,872 Q480,888 502,872" stroke="${INK}" stroke-width="9" fill="none" stroke-linecap="round"/><path d="M578,872 Q600,888 622,872" stroke="${INK}" stroke-width="9" fill="none" stroke-linecap="round"/>`
+    : `<circle cx="480" cy="872" r="13" fill="${INK}"/><circle cx="600" cy="872" r="13" fill="${INK}"/><circle cx="484" cy="867" r="4" fill="#fff"/><circle cx="604" cy="867" r="4" fill="#fff"/>`;
+  const M = mouth==='yawn' ? `<ellipse id="${id}m" cx="540" cy="938" rx="20" ry="24" fill="#8a3d3d"/>`
+    : mouth==='smile' ? `<path d="M512,928 Q540,958 568,928" stroke="#8a3d3d" stroke-width="9" fill="none" stroke-linecap="round"/>`
+    : `<path d="M520,940 Q540,930 560,940" stroke="#8a3d3d" stroke-width="8" fill="none" stroke-linecap="round"/>`;
+  return `<g id="${id}">
+   <rect x="412" y="800" width="256" height="170" rx="64" fill="#2e2a3a"/>
+   <path d="M392,1200 Q392,985 540,972 Q688,985 688,1200 Z" fill="#7fc4ad"/>
+   <path d="M498,982 Q540,1032 582,982" stroke="#5aa58d" stroke-width="12" fill="none"/>
+   <circle cx="540" cy="860" r="118" fill="#ffdcc4"/>
+   <path d="M418,868 Q408,730 540,724 Q672,730 662,868 Q646,800 604,786 Q566,818 522,790 Q468,800 440,858 Z" fill="#2e2a3a"/>
+   <circle cx="470" cy="912" r="18" fill="#ffab9c" opacity=".7"/><circle cx="610" cy="912" r="18" fill="#ffab9c" opacity=".7"/>
+   ${E}${M}</g>`;
+}
+function desk(){
+  return `<rect x="0" y="1186" width="1080" height="44" fill="#d9a06a"/><rect x="0" y="1230" width="1080" height="700" fill="#b07a4c"/>
+  <rect x="0" y="1230" width="1080" height="14" fill="#9a6840"/>
+  <path d="M440,1186 L540,1168 L540,1190 Z" fill="#fff"/><path d="M640,1186 L540,1168 L540,1190 Z" fill="#eef1f6"/>
+  <ellipse cx="430" cy="1188" rx="74" ry="34" fill="#7fc4ad"/><ellipse cx="650" cy="1188" rx="74" ry="34" fill="#7fc4ad"/>`;
+}
+function canFront(){
+  return `<rect x="-55" y="-212" width="110" height="212" rx="18" fill="#2fb3a0"/>
+  <rect x="-55" y="-172" width="110" height="64" fill="#ffd84d"/>
+  <path d="M6,-166 L-16,-136 L-2,-136 L-10,-114 L16,-146 L2,-146 Z" fill="${INK}"/>
+  <rect x="-55" y="-60" width="110" height="12" fill="#25998a"/>
+  <rect x="-50" y="-224" width="100" height="18" rx="9" fill="#cfd6dc"/>`;
+}
+function canBack(){
+  return `<rect x="-55" y="-212" width="110" height="212" rx="18" fill="#2fb3a0"/>
+  <rect x="-44" y="-192" width="88" height="160" rx="8" fill="#fff"/>
+  <rect x="-36" y="-180" width="72" height="20" rx="3" fill="none" stroke="#d93a2b" stroke-width="4"/>
+  <rect x="-36" y="-150" width="60" height="9" rx="4" fill="${INK}"/>
+  <rect x="-36" y="-132" width="72" height="7" rx="3" fill="#9aa4b8"/><rect x="-36" y="-118" width="66" height="7" rx="3" fill="#9aa4b8"/>
+  <rect x="-36" y="-104" width="70" height="7" rx="3" fill="#9aa4b8"/><rect x="-36" y="-82" width="50" height="6" rx="3" fill="#cfd6dc"/><rect x="-36" y="-68" width="62" height="6" rx="3" fill="#cfd6dc"/>
+  <rect x="-50" y="-224" width="100" height="18" rx="9" fill="#cfd6dc"/>`;
+}
+
+// ---------- build scenes ----------
+$('s1art').innerHTML = nightRoom() + `<g id="s1kid">${minji('s1m','sleepy','yawn')}</g>` + desk() +
+  `<g id="s1z" font-family="sans-serif" font-weight="900" fill="#d9d4ff"><text id="z1" x="660" y="740" font-size="64">Z</text><text id="z2" x="720" y="680" font-size="80">Z</text><text id="z3" x="790" y="610" font-size="96">Z</text></g>`;
+$('s2art').innerHTML = nightRoom() + minji('s2m','open','flat') + desk() +
+  `<g id="can1">${canFront()}</g><g id="can2">${canFront()}</g>`;
+{
+  let rays=''; for(let i=0;i<16;i++){ rays+=`<path d="M0,0 L${Math.cos(i*Math.PI/8-.08)*1400},${Math.sin(i*Math.PI/8-.08)*1400} L${Math.cos(i*Math.PI/8+.08)*1400},${Math.sin(i*Math.PI/8+.08)*1400} Z" fill="#ffe680"/>`; }
+  $('s3art').innerHTML = `<g id="s3rays" transform="translate(540,960)">${rays}</g>
+   <ellipse cx="540" cy="1262" rx="200" ry="30" fill="rgba(0,0,0,.12)"/>
+   <g id="s3can"><g id="s3f">${canFront()}</g><g id="s3b" opacity="0">${canBack()}</g></g>`;
+}
+{ // bar chart
+  const z=1330, k=3.6, X0=200;
+  let ax=''; [0,50,100,150,200,250].forEach(v=>{const y=z-v*k; ax+=`<line x1="${X0}" y1="${y}" x2="980" y2="${y}" stroke="#d6cff0" stroke-width="3"/><text x="${X0-20}" y="${y+14}" text-anchor="end" font-size="38" fill="#5b6478" font-family="var(--body)" font-weight="500">${v}</text>`;});
+  const ly = z-125*k;
+  $('s6art').innerHTML = `${ax}<text x="${X0-20}" y="${z-250*k-40}" text-anchor="end" font-size="34" fill="#5b6478" font-weight="700">mg</text>
+   <line x1="${X0}" y1="${z}" x2="980" y2="${z}" stroke="${INK}" stroke-width="6"/>
+   <rect id="bar1" x="300" y="${z}" width="230" height="0" rx="14" fill="#2fb3a0"/>
+   <rect id="bar2" x="670" y="${z}" width="230" height="0" rx="14" fill="#2fb3a0"/>
+   <text id="v1" x="415" y="${z}" text-anchor="middle" font-size="60" font-weight="900" fill="${INK}" opacity="0">100mg</text>
+   <text id="v2" x="785" y="${z}" text-anchor="middle" font-size="60" font-weight="900" fill="${INK}" opacity="0">200mg</text>
+   <line x1="${X0}" y1="${ly}" x2="1000" y2="${ly}" stroke="#e0483a" stroke-width="8" stroke-dasharray="26 16"/>
+   <rect x="${X0+10}" y="${ly-74}" width="390" height="62" rx="31" fill="#e0483a"/>
+   <text x="${X0+205}" y="${ly-30}" text-anchor="middle" font-size="38" font-weight="900" fill="#fff">하루 기준 125mg</text>
+   <g id="can1lbl"><text x="415" y="${z+70}" text-anchor="middle" font-size="56" font-weight="900" fill="${INK}">1캔</text></g>
+   <text x="785" y="${z+70}" text-anchor="middle" font-size="56" font-weight="900" fill="${INK}">2캔</text>
+   <g id="over" opacity="0"><rect x="600" y="390" width="380" height="110" rx="55" fill="${INK}"/><text x="790" y="466" text-anchor="middle" font-size="62" font-weight="900" fill="#ffd84d">기준 초과!</text></g>
+   <text x="540" y="1490" text-anchor="middle" font-size="36" fill="#5b6478" font-weight="500">※ 100mg은 예시 수치예요 (제품마다 달라요)</text>`;
+}
+{ // coffee / cola / chocolate
+  const coffee=`<ellipse cx="0" cy="96" rx="130" ry="22" fill="#d7dee8"/><path d="M-90,-20 L90,-20 L72,86 Q70,96 58,96 L-58,96 Q-70,96 -72,86 Z" fill="#fff" stroke="${INK}" stroke-width="8"/>
+   <path d="M88,0 Q140,0 134,40 Q128,74 78,70" fill="none" stroke="${INK}" stroke-width="10"/><ellipse cx="0" cy="-20" rx="90" ry="16" fill="#6b4532"/>
+   <path d="M-30,-60 q-16,-24 0,-48 q16,-24 0,-48" stroke="#9aa4b8" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M28,-60 q-16,-24 0,-48 q16,-24 0,-48" stroke="#9aa4b8" stroke-width="8" fill="none" stroke-linecap="round"/>`;
+  const cola=`<path d="M-70,-110 L70,-110 L56,110 Q54,120 44,120 L-44,120 Q-54,120 -56,110 Z" fill="#e8f2fb" stroke="${INK}" stroke-width="8"/>
+   <path d="M-64,-60 L64,-60 L56,108 L-56,108 Z" fill="#5a2f22"/><rect x="-36" y="-52" width="40" height="40" rx="6" fill="#d4ecff" opacity=".85"/>
+   <circle cx="20" cy="20" r="7" fill="#c98a6a"/><circle cx="-18" cy="50" r="5" fill="#c98a6a"/><circle cx="26" cy="74" r="6" fill="#c98a6a"/>
+   <rect x="16" y="-170" width="18" height="150" rx="9" fill="#e0483a" transform="rotate(14 25 -95)"/>`;
+  let sq=''; for(let r=0;r<3;r++)for(let c=0;c<2;c++) sq+=`<rect x="${-68+c*68}" y="${-60+r*58}" width="60" height="50" rx="8" fill="#7a4a33"/>`;
+  const choco=`<rect x="-78" y="-70" width="156" height="190" rx="14" fill="#5d3524"/>${sq}<path d="M-84,40 L84,10 L84,130 L-84,130 Z" fill="#e0483a"/><path d="M-84,40 L84,10" stroke="#ffd84d" stroke-width="8"/>`;
+  const row=(id,y,svg,label)=>`<g id="${id}" transform="translate(0,${y})"><g transform="translate(280,0)">${svg}</g><text x="470" y="44" font-size="128" fill="${INK}" font-family="Black Han Sans, Noto Sans KR, Noto Sans CJK KR, sans-serif" font-weight="900">${label}</text></g>`;
+  $('s7art').innerHTML = row('i1',620,coffee,'커피') + row('i2',960,cola,'콜라') + row('i3',1300,choco,'초콜릿');
+}
+{ // bedroom
+  $('s8art').innerHTML = `<rect width="1080" height="1920" fill="#20264a"/>
+   <rect x="660" y="430" width="300" height="300" rx="16" fill="#151a3a" stroke="#d9d4ff" stroke-width="12"/><circle cx="830" cy="530" r="40" fill="#ffe58a"/><circle cx="850" cy="518" r="34" fill="#151a3a"/>
+   <rect x="80" y="1040" width="920" height="70" rx="20" fill="#8a6bd1"/>
+   <rect x="60" y="1100" width="960" height="260" rx="28" fill="#6c4fb5"/>
+   <rect x="60" y="900" width="60" height="460" rx="20" fill="#5a3f9c"/>
+   <ellipse cx="270" cy="1000" rx="150" ry="70" fill="#fff"/>
+   <g transform="translate(-270,145) rotate(-8 540 860)">
+     <rect x="412" y="800" width="256" height="150" rx="64" fill="#2e2a3a"/>
+     <circle cx="540" cy="860" r="110" fill="#ffdcc4"/>
+     <path d="M424,868 Q414,736 540,730 Q666,736 656,868 Q640,804 600,792 Q562,822 522,796 Q470,806 444,858 Z" fill="#2e2a3a"/>
+     <path d="M456,838 L500,848" stroke="${INK}" stroke-width="8" stroke-linecap="round"/><path d="M624,838 L580,848" stroke="${INK}" stroke-width="8" stroke-linecap="round"/>
+     <circle cx="480" cy="874" r="15" fill="${INK}"/><circle cx="600" cy="874" r="15" fill="${INK}"/><circle cx="485" cy="868" r="5" fill="#fff"/><circle cx="605" cy="868" r="5" fill="#fff"/>
+     <path d="M520,936 Q540,926 560,936" stroke="#8a3d3d" stroke-width="8" fill="none" stroke-linecap="round"/></g>
+   <path d="M330,1050 Q520,980 1000,1040 L1000,1250 L330,1250 Z" fill="#b9a6ee"/>
+   <path d="M330,1050 Q520,980 1000,1040" stroke="#a48fe0" stroke-width="12" fill="none"/>
+   <g id="heart" transform="translate(700,820)"><path d="M0,60 C-120,-20 -90,-130 0,-80 C90,-130 120,-20 0,60 Z" fill="#ff6b6b" stroke="#fff" stroke-width="8"/></g>
+   <g id="beat" opacity="0"><path d="M820,780 q30,40 0,80" stroke="#ff8a7a" stroke-width="10" fill="none" stroke-linecap="round"/><path d="M860,750 q50,70 0,140" stroke="#ff8a7a" stroke-width="10" fill="none" stroke-linecap="round"/>
+   <path d="M580,780 q-30,40 0,80" stroke="#ff8a7a" stroke-width="10" fill="none" stroke-linecap="round"/><path d="M540,750 q-50,70 0,140" stroke="#ff8a7a" stroke-width="10" fill="none" stroke-linecap="round"/></g>`;
+}
+$('s9art').innerHTML = `<rect x="430" y="400" width="220" height="80" rx="20" fill="${INK}"/>
+  <rect x="270" y="460" width="540" height="800" rx="60" fill="#fff" stroke="${INK}" stroke-width="26"/>
+  <rect id="batt" x="310" y="1220" width="460" height="0" rx="30" fill="#3cc49a"/>
+  <path id="bolt" d="M570,620 L440,880 L540,880 L500,1100 L650,800 L550,800 Z" fill="#fff" stroke="${INK}" stroke-width="14" stroke-linejoin="round"/>`;
+{ // cards
+  const water=`<svg viewBox="-110 -110 220 220"><path d="M-62,-80 L62,-80 L50,92 Q48,100 40,100 L-40,100 Q-48,100 -50,92 Z" fill="#eaf6ff" stroke="${INK}" stroke-width="8"/><path d="M-57,-20 L57,-20 L50,94 L-50,94 Z" fill="#7cc3f0"/><circle cx="-12" cy="30" r="8" fill="#fff" opacity=".8"/><circle cx="18" cy="60" r="6" fill="#fff" opacity=".8"/></svg>`;
+  const stretch=`<svg viewBox="-110 -110 220 220"><circle cx="0" cy="-58" r="30" fill="#ffdcc4" stroke="${INK}" stroke-width="7"/><path d="M0,-26 L0,50 M0,50 L-40,104 M0,50 L40,104 M0,-8 L-56,-92 M0,-8 L56,-92" stroke="${INK}" stroke-width="14" stroke-linecap="round" fill="none"/><path d="M-84,-60 q-10,-20 6,-34 M84,-60 q10,-20 -6,-34" stroke="#2fb3a0" stroke-width="8" fill="none" stroke-linecap="round"/></svg>`;
+  const sleep=`<svg viewBox="-110 -110 220 220"><circle cx="-6" cy="0" r="80" fill="#ffd84d"/><circle cx="30" cy="-28" r="74" fill="#fff"/><text x="34" y="10" font-size="56" font-weight="900" fill="${INK}" font-family="sans-serif">Z</text><text x="64" y="-40" font-size="40" font-weight="900" fill="${INK}" font-family="sans-serif">z</text></svg>`;
+  $('k1').innerHTML = water + '<span class="t">물 한 잔</span>';
+  $('k2').innerHTML = stretch + '<span class="t">가벼운 스트레칭</span>';
+  $('k3').innerHTML = sleep + '<span class="t">충분한 잠</span>';
+}
+$('s11art').innerHTML = `<g id="s11can" transform="translate(540,1420) scale(3.4)">${canBack()}</g>
+  <g id="s11chk" opacity="0" transform="translate(800,800)"><circle r="110" fill="#2fb3a0" stroke="#fff" stroke-width="14"/><path d="M-50,0 L-14,38 L54,-36" stroke="#fff" stroke-width="26" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>`;
+$('s12art').innerHTML = `<g id="qmark" transform="translate(540,440)"><circle r="120" fill="#ffd84d"/><text y="62" text-anchor="middle" font-size="190" font-weight="900" fill="#283060" font-family="Black Han Sans, Noto Sans KR, Noto Sans CJK KR, sans-serif">?</text></g>`;
+
+// ---------- per-scene animation (lt = seconds into scene) ----------
+const U = [
+  lt=>{ // 1
+    att($('s1kid'),`rotate(${Math.sin(lt*2.2)*4} 540 1100)`);
+    const y=$('s1mm'); const m=document.querySelector('#s1m ellipse'); if(m){ const yawn = lt>1.6&&lt<3.4 ? Math.sin((lt-1.6)/1.8*Math.PI) : 0; m.setAttribute('ry', 6+22*yawn); m.setAttribute('rx', 10+12*yawn); }
+    ['z1','z2','z3'].forEach((id,i)=>{ const p=((lt*0.6+i/3)%1); att($(id),`translate(${p*30},${-p*60})`, (1-p)*clamp(lt*2)); });
+    pop($('s1cap'),lt,.3,.6,-60);
+  },
+  lt=>{ // 2
+    [[ 'can1',230,.15],[ 'can2',850,.55]].forEach(([id,x,a])=>{ const p=P(lt,a,.8); att($(id),`translate(${x},${1186-(1-ebounce(p))*1300}) scale(1.25)`, p>0?1:0); });
+    pop($('s2bub'),lt,1.2,.5,60);
+  },
+  lt=>{ // 3
+    att($('s3rays'),`translate(540,960) rotate(${lt*8})`);
+    const sp=P(lt,0,.5); const shake = lt<.9 ? Math.sin(lt*60)*10*(1-lt/.9) : 0;
+    css($('s3stop'),sp>0?1:0,`translateX(${shake}px) scale(${1.6-.6*eo(sp)})`);
+    const fp=P(lt,1.1,1.0); const sx=Math.max(.03,Math.abs(Math.cos(Math.PI*fp)));
+    att($('s3can'),`translate(540,1262) scale(${sx*2.9},2.9)`);
+    att($('s3f'),undefined, fp<.5?1:0); att($('s3b'),undefined, fp<.5?0:1);
+    pop($('s3cap'),lt,2.0,.5,40);
+  },
+  lt=>{ // 4
+    pop($('s4card'),lt,0,.6,80);
+    const T=[.8,5.4,10.4];
+    T.forEach((a,i)=>{
+      const b=$('b'+(i+1)); const active = lt>=a && (i===2 || lt<T[i+1]); const done = i<2 && lt>=T[i+1];
+      const p=P(lt,a,.45);
+      css(b.querySelector('.hl'), active? eo(p) : done? .35 : 0, `scale(${active?1.12-.12*eb(p):1})`);
+      css(b.querySelector('.num'), active||done? (active?eo(p):.5) : 0, `scale(${active?.5+.5*eb(p):1})`);
+      b.style.background = active ? 'rgba(255,216,77,.35)' : 'transparent';
+      const anyStarted = lt>=T[0];
+      css(b, !anyStarted||active ? 1 : .45);
+      const c=$('c'+(i+1)); c.className='chip'+(active?' on':done?' done':'');
+    });
+  },
+  lt=>{ // 5
+    pop($('t1'),lt,.5,.5); pop($('o1'),lt,2.0,.4,20); pop($('t2'),lt,2.3,.5); pop($('o2'),lt,4.0,.4,20); pop($('t3'),lt,4.3,.6);
+    $('t3v').textContent = Math.round(125*eo(P(lt,4.4,1.4)))+'mg';
+    pop($('s5foot'),lt,6.0,.5,20);
+  },
+  lt=>{ // 6
+    const z=1330,k=3.6;
+    const h1=100*k*eo(P(lt,.3,1.0)), h2=200*k*eo(P(lt,1.7,1.4));
+    $('bar1').setAttribute('y',z-h1); $('bar1').setAttribute('height',h1);
+    $('bar2').setAttribute('y',z-h2); $('bar2').setAttribute('height',h2);
+    $('bar2').setAttribute('fill', h2>125*k ? '#e0483a' : '#2fb3a0');
+    att($('v1'),`translate(0,${-h1-24})`, P(lt,1.0,.3)); att($('v2'),`translate(0,${-h2-24})`, P(lt,2.9,.3));
+    const op=P(lt,3.1,.4); const sh = lt>3.1&&lt<3.9 ? Math.sin(lt*50)*8*(3.9-lt) : 0;
+    att($('over'),`translate(${sh},0) translate(790,445) scale(${.6+.4*eb(op)}) translate(-790,-445)`, op);
+  },
+  lt=>{ // 7
+    [['i1',.3,620],['i2',1.0,960],['i3',1.7,1300]].forEach(([id,a,y])=>{ const p=P(lt,a,.5); att($(id),`translate(0,${y+(1-eo(p))*60}) translate(280,0) scale(${.6+.4*eb(p)}) translate(-280,0)`, eo(p)); });
+  },
+  lt=>{ // 8
+    const ph=(lt*1.6)%1; const beat = ph<.15? ph/.15 : ph<.3? 1-(ph-.15)/.15 : ph<.42? (ph-.3)/.12*.6 : ph<.55? .6-(ph-.42)/.13*.6 : 0;
+    att($('heart'),`translate(700,820) scale(${1+.28*beat})`);
+    att($('beat'),undefined, beat*.9);
+  },
+  lt=>{ // 9
+    let lvl; if(lt<.4) lvl=.1; else if(lt<1.9) lvl=.1+.9*eo(P(lt,.4,1.5)); else if(lt<3.0) lvl=1; else lvl=1-.92*eo(P(lt,3.0,1.6));
+    const H=720*lvl; $('batt').setAttribute('y',1220-H); $('batt').setAttribute('height',H);
+    $('batt').setAttribute('fill', lvl>.35 ? '#3cc49a' : '#e0483a');
+    pop($('s9a'),lt,.2,.5,-30); pop($('s9b'),lt,3.4,.6,40);
+  },
+  lt=>{ // 10
+    pop($('k1'),lt,.3,.5); pop($('k2'),lt,1.4,.5); pop($('k3'),lt,2.5,.5); pop($('s10end'),lt,3.7,.6,40);
+  },
+  lt=>{ // 11
+    pop($('s11a'),lt,.1,.5,-40); pop($('s11b'),lt,.5,.6,40);
+    const cp=P(lt,.3,.7); att($('s11can'),`translate(540,${1420+(1-eo(cp))*300}) scale(3.4) rotate(${Math.sin(lt*3)*3})`, eo(cp));
+    const kp=P(lt,1.2,.5); att($('s11chk'),`translate(800,820) scale(${eb(kp)})`, kp>0?1:0);
+  },
+  lt=>{ // 12
+    const p=P(lt,.2,.8); css($('s12q'),eo(p),`translateY(${(1-eo(p))*30}px)`);
+    att($('qmark'),`translate(540,${440+Math.sin(lt*1.4)*10}) scale(${.7+.3*eb(P(lt,0,.6))})`);
+  }
+];
+
+// ---------- render(t) ----------
+const scenes=[...document.querySelectorAll('.scene')];
+function sceneAt(t){ let i=0; for(let k=0;k<STARTS.length;k++) if(t>=STARTS[k]) i=k; return i; }
+function render(t){
+  t=clamp(t,0,TOTAL-0.0001);
+  scenes.forEach((el,i)=>{
+    const s=STARTS[i], e=s+DUR[i];
+    const vis = t>=s && (t<e+FADE || i===scenes.length-1);
+    if(!vis){ el.style.visibility='hidden'; el.style.opacity=0; return; }
+    el.style.visibility='visible'; el.style.zIndex=i+1;
+    el.style.opacity = i===0 ? 1 : clamp((t-s)/FADE);
+    U[i](t-s, DUR[i]);
+  });
+}
+window.__render = render;
+window.__total = ()=>TOTAL;
+
+// ---------- player ----------
+const fmt=s=>{s=Math.max(0,s);return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');};
+let playing=false, cur=0, base=0, startAt=0;
+function setT(t){ cur=clamp(t,0,TOTAL); render(cur); ui(); }
+function ui(){
+  if(EXPORT) return;
+  $('scrub').max=TOTAL; $('scrub').value=cur;
+  $('time').textContent=fmt(cur)+' / '+fmt(TOTAL);
+  const i=sceneAt(cur); $('sname').textContent=(i+1)+'. '+NAMES[i];
+  $('play').textContent = playing ? '❚❚ 정지' : '▶ 재생';
+}
+function play(){ if(cur>=TOTAL-0.01) cur=0; playing=true; base=cur; startAt=performance.now(); ui(); }
+function pause(){ playing=false; ui(); }
+function tick(now){
+  if(playing){ cur=base+(now-startAt)/1000; if(cur>=TOTAL){ cur=TOTAL; playing=false; if(document.documentElement.classList.contains('rec')) setTimeout(exitRec,1200); } render(cur); ui(); }
+  requestAnimationFrame(tick);
+}
+function fit(){
+  const vp=$('viewport'), st=$('stage');
+  let s;
+  if(EXPORT){ s=1; }
+  else { const fr=$('frame'); const w=fr.clientWidth, h=fr.clientHeight; s=Math.min(w/1080, h/1920); if(!(s>0)) s=.3; }
+  vp.style.width=(1080*s)+'px'; vp.style.height=(1920*s)+'px'; st.style.transform=`scale(${s})`;
+}
+window.addEventListener('resize',fit);
+
+if(!EXPORT){
+  $('play').onclick=()=>playing?pause():play();
+  $('restart').onclick=()=>{ setT(0); play(); };
+  $('scrub').oninput=e=>{ pause(); setT(+e.target.value); };
+  $('guide').onclick=e=>{ const on=$('stage').classList.toggle('guide'); e.currentTarget.setAttribute('aria-pressed',on); e.currentTarget.textContent=on?'자막 자리 숨기기':'자막 자리 보기'; };
+  document.addEventListener('keydown',e=>{
+    if(e.target.tagName==='INPUT') return;
+    if(e.key===' '){ e.preventDefault(); playing?pause():play(); }
+    else if(e.key==='ArrowRight'){ pause(); const i=sceneAt(cur); setT(STARTS[Math.min(i+1,STARTS.length-1)]+0.6); }
+    else if(e.key==='ArrowLeft'){ pause(); const i=sceneAt(cur); setT(STARTS[Math.max(i-1,0)]+0.6); }
+    else if(e.key==='Escape' && document.documentElement.classList.contains('rec')) exitRec();
+  });
+  // record mode
+  let cdTimer=null;
+  function enterRec(){
+    pause(); setT(0); document.documentElement.classList.add('rec');
+    const el=document.documentElement; try{ const r=el.requestFullscreen&&el.requestFullscreen(); if(r&&r.catch) r.catch(()=>{}); }catch(e){}
+    setTimeout(fit,60);
+    const cd=$('countdown'); cd.style.display='flex'; let n=3;
+    const step=()=>{ if(n===0){ cd.style.display='none'; play(); return; } cd.innerHTML=`화면 녹화를 켜세요<br><span style="font-size:64px">${n}</span>`; n--; cdTimer=setTimeout(step,1000); };
+    step();
+  }
+  function exitRec(){
+    clearTimeout(cdTimer); $('countdown').style.display='none'; pause();
+    document.documentElement.classList.remove('rec');
+    try{ if(document.fullscreenElement) document.exitFullscreen().catch(()=>{}); }catch(e){}
+    setTimeout(fit,60);
+  }
+  window.exitRec=exitRec;
+  $('rec').onclick=enterRec;
+  // durations
+  const box=$('durs');
+  function buildDur(){
+    box.innerHTML='';
+    DUR.forEach((d,i)=>{ const l=document.createElement('label'); l.innerHTML=`<span>${i+1}. ${NAMES[i]}</span>`; const inp=document.createElement('input'); inp.type='number'; inp.min='1'; inp.max='40'; inp.step='0.5'; inp.value=d; inp.id='dur'+i; inp.setAttribute('aria-label',NAMES[i]+' 길이(초)');
+      inp.onchange=()=>{ const v=parseFloat(inp.value); if(v>0){ DUR[i]=v; recompute(); try{localStorage.setItem('energyDur',JSON.stringify(DUR));}catch(e){} setT(Math.min(cur,TOTAL)); } else inp.value=DUR[i]; };
+      l.appendChild(inp); box.appendChild(l); });
+  }
+  buildDur();
+  $('resetDur').onclick=()=>{ DUR=DEFAULT_DUR.slice(); recompute(); try{localStorage.removeItem('energyDur');}catch(e){} buildDur(); setT(0); };
+}
+
+fit(); setT(EXPORT?0:5.2); requestAnimationFrame(tick);
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fit);
+</script>
