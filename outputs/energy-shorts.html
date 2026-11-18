@@ -116,7 +116,7 @@ html.rec #stage .safe-guide,html.export #stage .safe-guide{display:none!importan
     </section>
 
     <!-- 4 라벨 -->
-    <section class="scene" id="s4" style="background:#dff3ec">
+    <section class="scene" id="s4" style="background:#eaf0f7">
       <div class="abs ctr" style="top:120px;display:flex;justify-content:center;align-items:center;gap:26px">
         <div class="disp" style="font-size:84px;color:#1d2433;margin-right:14px">뒷면 확인</div>
         <span class="chip" id="c1">1</span><span class="chip" id="c2">2</span><span class="chip" id="c3">3</span>
@@ -135,7 +135,7 @@ html.rec #stage .safe-guide,html.export #stage .safe-guide{display:none!importan
     </section>
 
     <!-- 5 계산 -->
-    <section class="scene" id="s5" style="background:#e8eefc">
+    <section class="scene" id="s5" style="background:#eaf0f7">
       <div class="abs ctr disp" style="top:120px;font-size:96px;color:#1d2433">청소년 하루 카페인<br><span style="color:#3a5bd9">최대 권고량</span></div>
       <div class="abs tile" id="t1" style="top:420px;height:230px"><span class="k">몸무게</span><span class="v">50kg</span></div>
       <div class="abs op" id="o1" style="top:655px">×</div>
@@ -146,13 +146,13 @@ html.rec #stage .safe-guide,html.export #stage .safe-guide{display:none!importan
     </section>
 
     <!-- 6 그래프 -->
-    <section class="scene" id="s6" style="background:#efeafc">
+    <section class="scene" id="s6" style="background:#eaf0f7">
       <div class="abs ctr disp" style="top:120px;font-size:92px;color:#1d2433">몸무게 50kg이라면?</div>
       <svg class="art" viewBox="0 0 1080 1920" id="s6art"></svg>
     </section>
 
     <!-- 7 다른 카페인 -->
-    <section class="scene" id="s7" style="background:#e3f1fb">
+    <section class="scene" id="s7" style="background:#eaf0f7">
       <div class="abs ctr disp" style="top:140px;font-size:96px;color:#1d2433">여기에도<br><span style="color:#d0582f">카페인</span>이 있어요</div>
       <svg class="art" viewBox="0 0 1080 1920" id="s7art"></svg>
     </section>
@@ -165,7 +165,7 @@ html.rec #stage .safe-guide,html.export #stage .safe-guide{display:none!importan
     </section>
 
     <!-- 9 배터리 -->
-    <section class="scene" id="s9" style="background:#e6f5ee">
+    <section class="scene" id="s9" style="background:#eaf0f7">
       <div class="abs ctr" id="s9a" style="top:150px;font:900 80px var(--body);color:#1d2433">피로가 사라진 게 아니라,</div>
       <svg class="art" viewBox="0 0 1080 1920" id="s9art"></svg>
       <div class="abs ctr disp" id="s9b" style="top:1320px;font-size:130px;color:#e0483a">잠깐 못 느낄 뿐</div>
@@ -196,6 +196,7 @@ html.rec #stage .safe-guide,html.export #stage .safe-guide{display:none!importan
       <div class="abs ctr" style="top:1460px;font:500 30px var(--body);color:rgba(255,255,255,.62)">등장인물은 AI로 생성한 가상 인물입니다 · 라벨과 수치는 교육용 예시</div>
     </section>
 
+    <div style="position:absolute;left:0;right:0;top:0;height:10px;background:rgba(29,36,51,.25);z-index:40"><div id="prog" style="height:100%;width:0;background:#ffd84d"></div></div>
     <div class="safe-guide">자막 자리 (Vrew 자막이 들어갈 곳)</div>
   </div></div></div>
 
@@ -314,7 +315,7 @@ function canBack(){
 }
 { // bar chart
   const z=1330, k=3.6, X0=200;
-  let ax=''; [0,50,100,150,200,250].forEach(v=>{const y=z-v*k; ax+=`<line x1="${X0}" y1="${y}" x2="980" y2="${y}" stroke="#d6cff0" stroke-width="3"/><text x="${X0-20}" y="${y+14}" text-anchor="end" font-size="38" fill="#5b6478" font-family="var(--body)" font-weight="500">${v}</text>`;});
+  let ax=''; [0,50,100,150,200,250].forEach(v=>{const y=z-v*k; ax+=`<line x1="${X0}" y1="${y}" x2="980" y2="${y}" stroke="#d3dbe8" stroke-width="3"/><text x="${X0-20}" y="${y+14}" text-anchor="end" font-size="38" fill="#5b6478" font-family="var(--body)" font-weight="500">${v}</text>`;});
   const ly = z-125*k;
   $('s6art').innerHTML = `${ax}<text x="${X0-20}" y="${z-250*k-40}" text-anchor="end" font-size="34" fill="#5b6478" font-weight="700">mg</text>
    <line x1="${X0}" y1="${z}" x2="980" y2="${z}" stroke="${INK}" stroke-width="6"/>
@@ -446,14 +447,38 @@ const U = [
 // ---------- render(t) ----------
 const scenes=[...document.querySelectorAll('.scene')];
 function sceneAt(t){ let i=0; for(let k=0;k<STARTS.length;k++) if(t>=STARTS[k]) i=k; return i; }
+// How each scene enters (and how the previous one leaves). ox/oy = point the outgoing scene zooms into.
+const TRANS = [null,
+  {t:'fade',d:.9},                 // 1→2 same desk: slow dissolve
+  {t:'zoom',d:.7,ox:860,oy:720},   // 2→3 zoom into the cans
+  {t:'zoom',d:.7,ox:540,oy:900},   // 3→4 zoom into the can's label
+  {t:'push',d:.6}, {t:'push',d:.6}, {t:'push',d:.6},   // infographics slide along
+  {t:'fade',d:.9},                 // 7→8 dissolve into night
+  {t:'fade',d:.8},                 // 8→9
+  {t:'fade',d:.8},                 // 9→10
+  {t:'zoom',d:.6,ox:540,oy:1440},  // 10→11 zoom into the key line
+  {t:'fade',d:.9}];                // 11→12
+const eio = x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
 function render(t){
   t=clamp(t,0,TOTAL-0.0001);
+  const pr=$('prog'); if(pr) pr.style.width=(t/TOTAL*100)+'%';
+  const N=scenes.length;
   scenes.forEach((el,i)=>{
-    const s=STARTS[i], e=s+DUR[i];
-    const vis = t>=s && (t<e+FADE || i===scenes.length-1);
+    const s=STARTS[i];
+    const nx = i<N-1 ? TRANS[i+1] : null, ns = i<N-1 ? STARTS[i+1] : Infinity;
+    const vis = t>=s && (!nx || t < ns+nx.d);
     if(!vis){ el.style.visibility='hidden'; el.style.opacity=0; return; }
     el.style.visibility='visible'; el.style.zIndex=i+1;
-    el.style.opacity = i===0 ? 1 : clamp((t-s)/FADE);
+    let op=1, tr='', origin='540px 960px';
+    const tin=TRANS[i];
+    if(tin){ const p=eio(clamp((t-s)/tin.d));
+      if(tin.t==='fade') op=p;
+      else if(tin.t==='zoom'){ op=p; tr+=` scale(${1.18-.18*p})`; }
+      else if(tin.t==='push'){ tr+=` translateX(${1080*(1-p)}px)`; } }
+    if(nx && t>=ns){ const p=eio(clamp((t-ns)/nx.d));
+      if(nx.t==='zoom'){ op*=1-p; tr=` scale(${1+.9*p})`+tr; origin=`${nx.ox}px ${nx.oy}px`; }
+      else if(nx.t==='push'){ tr=` translateX(${-1080*p}px)`+tr; } }
+    el.style.opacity=op; el.style.transform=tr||'none'; el.style.transformOrigin=origin;
     U[i](t-s, DUR[i]);
   });
 }
