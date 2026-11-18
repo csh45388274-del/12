@@ -87,6 +87,12 @@ html.rec #stage .safe-guide,html.export #stage .safe-guide{display:none!importan
 #s8 .photo{--fadeTo:#141a2e}
 .bubble.up{font-size:58px;padding:30px 44px}
 .bubble.up:after{bottom:auto;top:-46px;border-top:0;border-bottom:50px solid #fff}
+.zrow{left:70px;width:940px;display:flex;gap:60px}
+.zc{flex:1;height:170px;background:#fff;border:6px solid #c9d4ef;border-radius:30px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 30px;box-sizing:border-box}
+.zc .zk{font:700 36px var(--body);color:#5b6478}
+.zc .zv{font-family:var(--display);font-size:74px;color:#1d2433}
+.zc.hot{border-color:#e0483a;background:#fff1ef}
+.zc.hot .zv{color:#e0483a}
 .item-label{font-family:var(--display);font-size:130px;color:#1d2433}
 </style>
 
@@ -149,6 +155,23 @@ html.rec #stage .safe-guide,html.export #stage .safe-guide{display:none!importan
     <section class="scene" id="s6" style="background:#eaf0f7">
       <div class="abs ctr disp" style="top:120px;font-size:92px;color:#1d2433">몸무게 50kg이라면?</div>
       <svg class="art" viewBox="0 0 1080 1920" id="s6art"></svg>
+    </section>
+
+    <!-- 6-1 제로의 함정 -->
+    <section class="scene" id="sz" style="background:#eaf0f7">
+      <div class="abs ctr disp" style="top:120px;font-size:100px;color:#1d2433">제로라서 괜찮다고?</div>
+      <svg class="art" viewBox="0 0 1080 1920" id="szart"></svg>
+      <div class="abs ctr" style="top:715px;display:flex;justify-content:center;gap:120px;font:900 64px var(--body);color:#1d2433"><span style="width:440px">일반</span><span style="width:440px">제로</span></div>
+      <div class="abs zrow" id="zr1" style="top:830px">
+        <div class="zc" id="zsug"><span class="zk">당류</span><span class="zv">30~40g</span></div>
+        <div class="zc"><span class="zk">당류</span><span class="zv">0g</span></div>
+      </div>
+      <div class="abs zrow" id="zr2" style="top:1030px">
+        <div class="zc"><span class="zk">카페인</span><span class="zv">있음</span></div>
+        <div class="zc hot"><span class="zk">카페인</span><span class="zv">그대로!</span></div>
+      </div>
+      <div class="abs ctr disp" id="zstamp" style="top:1250px;font-size:92px;color:#e0483a"><span style="background:#ffd84d;padding:0 22px;border-radius:14px">제로여도 카페인은 그대로!</span></div>
+      <div class="abs ctr" id="zfoot" style="top:1440px;font:500 32px var(--body);color:#5b6478">당류 하루 권고량 약 50g (총 열량의 10% 이내, 식약처) · 30~40g은 예시</div>
     </section>
 
     <!-- 7 다른 카페인 -->
@@ -225,8 +248,8 @@ html.rec #stage .safe-guide,html.export #stage .safe-guide{display:none!importan
 
 <script>
 // ===== 장면 길이(초): 숫자만 바꾸면 됩니다 =====
-const DEFAULT_DUR = [6, 4, 4, 15, 10, 6, 5, 6, 6, 6, 4, 8];
-const NAMES = ['밤의 책상','캔 두 개','잠깐!','라벨 확인','나의 기준 계산','막대그래프','다른 카페인','두근두근','가짜 에너지','진짜 에너지','핵심 메시지','시청 후 질문'];
+const DEFAULT_DUR = [6, 4, 4, 15, 10, 6, 7, 5, 6, 6, 6, 4, 8];
+const NAMES = ['밤의 책상','캔 두 개','잠깐!','라벨 확인','나의 기준 계산','막대그래프','제로의 함정','다른 카페인','두근두근','가짜 에너지','진짜 에너지','핵심 메시지','시청 후 질문'];
 const FADE = 0.35;
 
 let DUR = DEFAULT_DUR.slice();
@@ -359,6 +382,12 @@ $('s9art').innerHTML = `<rect x="430" y="400" width="220" height="80" rx="20" fi
   const stretch=`<svg viewBox="-110 -110 220 220"><circle cx="0" cy="-58" r="30" fill="#ffdcc4" stroke="${INK}" stroke-width="7"/><path d="M0,-26 L0,50 M0,50 L-40,104 M0,50 L40,104 M0,-8 L-56,-92 M0,-8 L56,-92" stroke="${INK}" stroke-width="14" stroke-linecap="round" fill="none"/><path d="M-84,-60 q-10,-20 6,-34 M84,-60 q10,-20 -6,-34" stroke="#2fb3a0" stroke-width="8" fill="none" stroke-linecap="round"/></svg>`;
   const sleep=`<svg viewBox="-110 -110 220 220"><circle cx="-6" cy="0" r="80" fill="#ffd84d"/><circle cx="30" cy="-28" r="74" fill="#fff"/><text x="34" y="10" font-size="56" font-weight="900" fill="${INK}" font-family="sans-serif">Z</text><text x="64" y="-40" font-size="40" font-weight="900" fill="${INK}" font-family="sans-serif">z</text></svg>`;
 }
+{ const zero=`<rect x="-55" y="-212" width="110" height="212" rx="18" fill="#2b2f3a"/>
+  <rect x="-55" y="-150" width="110" height="52" fill="#e9edf5"/><text x="0" y="-111" text-anchor="middle" font-size="30" font-weight="900" fill="#2b2f3a" font-family="Noto Sans KR, sans-serif">ZERO</text>
+  <rect x="-55" y="-60" width="110" height="12" fill="#3a404f"/><rect x="-50" y="-224" width="100" height="18" rx="9" fill="#cfd6dc"/>`;
+  $('szart').innerHTML = `<g id="zc1" opacity="0"><g id="zc1i"><g transform="translate(310,690) scale(1.55)">${canFront()}</g></g></g>
+   <g id="zc2" opacity="0"><g id="zc2i"><g transform="translate(770,690) scale(1.55)">${zero}</g></g></g>
+   <text x="540" y="560" text-anchor="middle" font-size="80" font-weight="900" fill="#9aa4b8" font-family="Noto Sans KR, sans-serif">vs</text>`; }
 $('s11art').innerHTML = `<g id="s11can" transform="translate(540,1420) scale(3.4)">${canBack()}</g>
   <g id="s11chk" opacity="0" transform="translate(800,800)"><circle r="110" fill="#2fb3a0" stroke="#fff" stroke-width="14"/><path d="M-50,0 L-14,38 L54,-36" stroke="#fff" stroke-width="26" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>`;
 $('s12art').innerHTML = `<g id="qmark" transform="translate(540,440)"><circle r="120" fill="#ffd84d"/><text y="62" text-anchor="middle" font-size="190" font-weight="900" fill="#283060" font-family="Black Han Sans, Noto Sans KR, Noto Sans CJK KR, sans-serif">?</text></g>`;
@@ -411,6 +440,14 @@ const U = [
     const op=P(lt,3.1,.4); const sh = lt>3.1&&lt<3.9 ? Math.sin(lt*50)*8*(3.9-lt) : 0;
     att($('over'),`translate(${sh},0) translate(790,445) scale(${.6+.4*eb(op)}) translate(-790,-445)`, op);
   },
+  lt=>{ // 6-1 zero
+    [['zc1',.15],['zc2',.4]].forEach(([id,a])=>{ const p=P(lt,a,.5); att($(id),undefined,eo(p)); att($(id+'i'),`translate(0,${(1-eo(p))*80})`); });
+    pop($('zr1'),lt,1.0,.5,30); pop($('zr2'),lt,2.4,.5,30);
+    const sp=P(lt,3.4,.5); css($('zstamp'),sp>0?eo(sp):0,`scale(${1.4-.4*eb(sp)})`);
+    const hp=lt>4.6? Math.abs(Math.sin((lt-4.6)*4)) : 0; css($('zsug'),undefined,`scale(${1+.05*hp})`);
+    $('zsug').style.borderColor = lt>4.6 ? '#1d2433' : '#c9d4ef';
+    pop($('zfoot'),lt,4.0,.5,15);
+  },
   lt=>{ // 7
     [['i1',.3,620],['i2',1.0,960],['i3',1.7,1300]].forEach(([id,a,y])=>{ const p=P(lt,a,.5); att($(id),`translate(0,${y+(1-eo(p))*60}) translate(280,0) scale(${.6+.4*eb(p)}) translate(-280,0)`, eo(p)); });
   },
@@ -452,7 +489,7 @@ const TRANS = [null,
   {t:'fade',d:.9},                 // 1→2 same desk: slow dissolve
   {t:'zoom',d:.7,ox:860,oy:720},   // 2→3 zoom into the cans
   {t:'zoom',d:.7,ox:540,oy:900},   // 3→4 zoom into the can's label
-  {t:'push',d:.6}, {t:'push',d:.6}, {t:'push',d:.6},   // infographics slide along
+  {t:'push',d:.6}, {t:'push',d:.6}, {t:'push',d:.6}, {t:'push',d:.6},   // infographics slide along
   {t:'fade',d:.9},                 // 7→8 dissolve into night
   {t:'fade',d:.8},                 // 8→9
   {t:'fade',d:.8},                 // 9→10
